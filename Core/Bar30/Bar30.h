@@ -19,32 +19,33 @@
 
 /* Oversampling rate options - higher = more accurate but slower conversion */
 typedef enum {
-    MS5837_OSR_256  = 0x00,  /* ~0.6 ms conversion  */
-    MS5837_OSR_512  = 0x02,  /* ~1.2 ms conversion  */
-    MS5837_OSR_1024 = 0x04,  /* ~2.3 ms conversion  */
-    MS5837_OSR_2048 = 0x06,  /* ~4.6 ms conversion  */
-    MS5837_OSR_4096 = 0x08,  /* ~9.1 ms conversion  */
-    MS5837_OSR_8192 = 0x0A   /* ~18.1 ms conversion, most accurate */
+	MS5837_OSR_256 = 0x00, /* ~0.6 ms conversion  */
+	MS5837_OSR_512 = 0x02, /* ~1.2 ms conversion  */
+	MS5837_OSR_1024 = 0x04, /* ~2.3 ms conversion  */
+	MS5837_OSR_2048 = 0x06, /* ~4.6 ms conversion  */
+	MS5837_OSR_4096 = 0x08, /* ~9.1 ms conversion  */
+	MS5837_OSR_8192 = 0x0A /* ~18.1 ms conversion, most accurate */
 } MS5837_OSR_t;
 
 /* Sensor variant - the MS5837 family covers two different depth ranges.
  * This is NOT auto-detected from the chip; you tell the driver which one
  * you have. Your Bar30 uses the 30BA variant (default). */
 typedef enum {
-    MS5837_MODEL_30BA        = 0,  /* Blue Robotics Bar30, ~300m depth rating */
-    MS5837_MODEL_02BA        = 1,  /* shallower-rated variant, ~2 bar */
-    MS5837_MODEL_UNRECOGNIZED = 255
+	MS5837_MODEL_30BA = 0, /* Blue Robotics Bar30, ~300m depth rating */
+	MS5837_MODEL_02BA = 1, /* shallower-rated variant, ~2 bar */
+	MS5837_MODEL_UNRECOGNIZED = 255
 } MS5837_Model_t;
 
 typedef struct {
-    I2C_HandleTypeDef *hi2c;
-    uint16_t prom[7];        /* factory calibration coefficients, index 1-6 used */
-    MS5837_OSR_t osr;
-    MS5837_Model_t model;    /* which MS5837 variant - defaults to 30BA in Init() */
-    float pressure_mbar;
-    float temperature_C;
-    float surface_pressure_mbar; /* zero-depth reference, defaults to 1013.25 in Init() */
-    bool secondOrderCalculation; /* apply low-temp second-order compensation - default false, set true from main.c to enable */
+	I2C_HandleTypeDef *hi2c;
+	uint16_t prom[7]; /* factory calibration coefficients, index 1-6 used */
+	MS5837_OSR_t osr;
+	MS5837_Model_t model; /* which MS5837 variant - defaults to 30BA in Init() */
+	float pressure_mbar;
+	float temperature_C;
+	float fluidDensity_kg_m3;
+	float surface_pressure_mbar; /* zero-depth reference, defaults to 1013.25 in Init() */
+	bool secondOrderCalculation; /* apply low-temp second-order compensation - default false, set true from main.c to enable */
 } MS5837_t;
 
 /**
@@ -99,5 +100,11 @@ void MS5837_SetSurfaceReference(MS5837_t *dev, float pressure_mbar);
  * @brief  Returns the currently configured zero-depth reference pressure (mbar).
  */
 float MS5837_GetSurfaceReference(MS5837_t *dev);
+
+void MS5837_SetFluidDensity(MS5837_t *dev, float density_kg_m3);
+
+float MS5837_GetFluidDensity(MS5837_t *dev);
+
+float MS5837_GetDepth(MS5837_t *dev);
 
 #endif /* BAR30_BAR30_H_ */
