@@ -44,6 +44,7 @@ typedef struct {
     float pressure_mbar;
     float temperature_C;
     float surface_pressure_mbar; /* zero-depth reference, defaults to 1013.25 in Init() */
+    bool secondOrderCalculation; /* apply low-temp second-order compensation - default false, set true from main.c to enable */
 } MS5837_t;
 
 /**

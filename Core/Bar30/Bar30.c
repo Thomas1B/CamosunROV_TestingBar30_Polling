@@ -133,6 +133,7 @@ bool MS5837_Init(MS5837_t *dev)
 
     dev->model = MS5837_MODEL_30BA; /* your Bar30 - default, change via SetModel() if needed */
     dev->surface_pressure_mbar = 1013.25f; /* standard atmosphere - default, override via SetSurfaceReference() */
+    dev->secondOrderCalculation = false; /* first-order only by default - set true from main.c to enable */
 
     return true;
 }
@@ -157,6 +158,60 @@ MS5837_Model_t MS5837_GetModel(MS5837_t *dev)
     return dev->model;
 }
 
+/*
+ * Converts raw D1 (pressure) and D2 (temperature) ADC values into
+ * compensated pressure (mbar) and temperature (deg C), using the PROM
+ * calibration coefficients. Passed in as explicit arguments (rather than
+ * reading them off dev) so this can be called identically from polling
+ * or interrupt-mode code, and tested standalone against known D1/D2/PROM
+ * values without needing a live sensor.
+ *
+ * First-order compensation always runs. Second-order compensation (extra
+ * accuracy below 20 degC, with a further correction below -15 degC) only
+ * runs if dev->secondOrderCalculation is true - set that from your main.c
+ * to enable it, e.g. bar30.secondOrderCalculation = true;
+ */
+static void calculate(MS5837_t *dev, uint32_t D1, uint32_t D2)
+{
+    /* Coefficients: C1=prom[1] .. C6=prom[6], per datasheet compensation formula */
+    int32_t dT   = (int32_t)D2 - ((int32_t)dev->prom[5] << 8);
+    int64_t SENS = ((int64_t)dev->prom[1] << 15) + (((int64_t)dev->prom[3] * dT) >> 8);
+    int64_t OFF  = ((int64_t)dev->prom[2] << 16) + (((int64_t)dev->prom[4] * dT) >> 7);
+
+    int32_t temp_raw = 2000 + (int32_t)(((int64_t)dT * dev->prom[6]) >> 23);
+
+    if (dev->secondOrderCalculation) {
+        /* Second-order correction terms - only meaningfully non-zero below 20 degC */
+        int64_t Ti    = 0;
+        int64_t OFFi  = 0;
+        int64_t SENSi = 0;
+
+        if (temp_raw < 2000) {
+            int32_t T_delta = temp_raw - 2000;
+            Ti    = (3LL * (int64_t)dT * (int64_t)dT) >> 33;
+            OFFi  = (3LL * (int64_t)T_delta * (int64_t)T_delta) / 2;
+            SENSi = (5LL * (int64_t)T_delta * (int64_t)T_delta) / 8;
+
+            if (temp_raw < -1500) {
+                int32_t T_delta2 = temp_raw + 1500;
+                OFFi  += 7LL * (int64_t)T_delta2 * (int64_t)T_delta2;
+                SENSi += 4LL * (int64_t)T_delta2 * (int64_t)T_delta2;
+            }
+        } else {
+            Ti = (2LL * (int64_t)dT * (int64_t)dT) >> 37;
+        }
+
+        temp_raw -= (int32_t)Ti;
+        OFF  -= OFFi;
+        SENS -= SENSi;
+    }
+
+    int32_t pressure_raw = (int32_t)((((int64_t)D1 * SENS) >> 21) - OFF) >> 13;
+
+    dev->temperature_C = temp_raw / 100.0f;
+    dev->pressure_mbar  = pressure_raw / 10.0f;
+}
+
 bool MS5837_Read(MS5837_t *dev)
 {
     uint32_t D1 = 0; /* raw pressure ADC value */
@@ -175,22 +230,7 @@ bool MS5837_Read(MS5837_t *dev)
     if (!send_command(dev, CMD_ADC_READ)) return false;
     if (!read_adc(dev, &D2)) return false;
 
-    /* --- Calculate compensated values using PROM calibration coefficients --- */
-    /* Coefficients: C1=prom[1] .. C6=prom[6], per datasheet compensation formula */
-    int32_t dT   = (int32_t)D2 - ((int32_t)dev->prom[5] << 8);
-    int64_t SENS = ((int64_t)dev->prom[1] << 15) + (((int64_t)dev->prom[3] * dT) >> 8);
-    int64_t OFF  = ((int64_t)dev->prom[2] << 16) + (((int64_t)dev->prom[4] * dT) >> 7);
-
-    int32_t temp_raw = 2000 + (int32_t)(((int64_t)dT * dev->prom[6]) >> 23);
-    int32_t pressure_raw = (int32_t)((((int64_t)D1 * SENS) >> 21) - OFF) >> 13;
-
-    /* NOTE: this is first-order compensation only. The datasheet defines an
-     * additional second-order correction for low-temperature accuracy
-     * (below 20 degC) which is not applied here. Fine for bench testing;
-     * add it before relying on this for precise depth readings. */
-
-    dev->temperature_C = temp_raw / 100.0f;
-    dev->pressure_mbar  = pressure_raw / 10.0f;
+    calculate(dev, D1, D2);
 
     return true;
 }
