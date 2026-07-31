@@ -95,6 +95,7 @@ int main(void) {
 	MX_I2C1_Init();
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
+
 	printf("Starting test...\r\n");
 	for (uint8_t addr = 1; addr < 128; addr++) {
 		if (HAL_I2C_IsDeviceReady(&hi2c1, addr << 1, 1, 100) == HAL_OK) {

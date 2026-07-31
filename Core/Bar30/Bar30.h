@@ -125,10 +125,6 @@ float MS5837_GetDepth(MS5837_t *dev);
  */
 void MS5837_SetI2C(MS5837_t *dev, I2C_HandleTypeDef *hi2c);
 
-/**
- * @brief  Returns the currently configured I2C handle.
- */
-I2C_HandleTypeDef* MS5837_GetI2C(MS5837_t *dev);
 
 /**
  * @brief  Sets the oversampling rate (OSR) used for pressure/temperature

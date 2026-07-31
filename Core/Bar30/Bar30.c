@@ -259,9 +259,6 @@ void MS5837_SetI2C(MS5837_t *dev, I2C_HandleTypeDef *hi2c) {
 	dev->hi2c = hi2c;
 }
 
-I2C_HandleTypeDef* MS5837_GetI2C(MS5837_t *dev) {
-	return dev->hi2c;
-}
 
 void MS5837_SetOSR(MS5837_t *dev, MS5837_OSR_t osr) {
 	dev->osr = osr;
