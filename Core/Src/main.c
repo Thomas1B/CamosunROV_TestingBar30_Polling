@@ -103,10 +103,9 @@ int main(void) {
 	}
 	HAL_Delay(1000);
 
-	bar30.hi2c = &hi2c1;
-	bar30.osr = MS5837_OSR_256;
-//	bar30.model = MS5837_MODEL_30BA; // set the sensor model to 30BA (Bar30)
-	MS5837_SetModel(&bar30, MS5837_MODEL_02BA); // set the sensor model to 30BA (Bar30)
+	MS5837_SetI2C(&bar30, &hi2c1); // set the I2C handle for the sensor
+	MS5837_SetOSR(&bar30, MS5837_OSR_256); // set the oversampling rate for the sensor
+	MS5837_SetModel(&bar30, MS5837_MODEL_30BA); // set the sensor model
 
 	if (MS5837_Init(&bar30)) { // initialization and checking if the sensor is connected
 		printf("BarXX init OK.\r\n");

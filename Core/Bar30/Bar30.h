@@ -116,4 +116,35 @@ float MS5837_GetFluidDensity(MS5837_t *dev);
 
 float MS5837_GetDepth(MS5837_t *dev);
 
+/**
+ * @brief  Sets the I2C handle the sensor is connected on. Must be called
+ *         before Init() (Init() needs a valid dev->hi2c to talk to the
+ *         sensor over I2C).
+ * @param  dev: pointer to MS5837 handle
+ * @param  hi2c: pointer to the HAL I2C handle (e.g. &hi2c1)
+ */
+void MS5837_SetI2C(MS5837_t *dev, I2C_HandleTypeDef *hi2c);
+
+/**
+ * @brief  Returns the currently configured I2C handle.
+ */
+I2C_HandleTypeDef* MS5837_GetI2C(MS5837_t *dev);
+
+/**
+ * @brief  Sets the oversampling rate (OSR) used for pressure/temperature
+ *         conversions. Higher OSR = more accurate but slower reads (see
+ *         MS5837_OSR_t for conversion time per setting). Must be called
+ *         before the first Read() - it's used directly in Read() to pick
+ *         the conversion delay and command bits, and is not defaulted by
+ *         Init(), so set it explicitly.
+ * @param  dev: pointer to MS5837 handle
+ * @param  osr: desired oversampling rate
+ */
+void MS5837_SetOSR(MS5837_t *dev, MS5837_OSR_t osr);
+
+/**
+ * @brief  Returns the currently configured oversampling rate.
+ */
+MS5837_OSR_t MS5837_GetOSR(MS5837_t *dev);
+
 #endif /* BAR30_BAR30_H_ */

@@ -254,3 +254,19 @@ float MS5837_GetDepth(MS5837_t *dev) {
 	float pressure_diff_pa = (dev->pressure_mbar - dev->surface_pressure_mbar) * 100.0f; // Converting to SI units, note: 1 mbar = 1 hPa
 	return pressure_diff_pa / (dev->fluidDensity_kg_m3 * GRAVITY);
 }
+
+void MS5837_SetI2C(MS5837_t *dev, I2C_HandleTypeDef *hi2c) {
+	dev->hi2c = hi2c;
+}
+
+I2C_HandleTypeDef* MS5837_GetI2C(MS5837_t *dev) {
+	return dev->hi2c;
+}
+
+void MS5837_SetOSR(MS5837_t *dev, MS5837_OSR_t osr) {
+	dev->osr = osr;
+}
+
+MS5837_OSR_t MS5837_GetOSR(MS5837_t *dev) {
+	return dev->osr;
+}
