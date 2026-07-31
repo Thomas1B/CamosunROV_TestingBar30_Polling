@@ -105,6 +105,8 @@ int main(void) {
 
 	bar30.hi2c = &hi2c1;
 	bar30.osr = MS5837_OSR_256;
+//	bar30.model = MS5837_MODEL_30BA; // set the sensor model to 30BA (Bar30)
+	MS5837_SetModel(&bar30, MS5837_MODEL_02BA); // set the sensor model to 30BA (Bar30)
 
 	if (MS5837_Init(&bar30)) { // initialization and checking if the sensor is connected
 		printf("BarXX init OK.\r\n");

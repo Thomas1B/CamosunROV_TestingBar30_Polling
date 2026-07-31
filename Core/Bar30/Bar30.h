@@ -40,16 +40,25 @@ typedef struct {
 	I2C_HandleTypeDef *hi2c;
 	uint16_t prom[7]; /* factory calibration coefficients, index 1-6 used */
 	MS5837_OSR_t osr;
-	MS5837_Model_t model; /* which MS5837 variant - defaults to 30BA in Init() */
+	MS5837_Model_t model; /* which MS5837 variant - defaults to 30BA, explicitly set in Init() */
 	float pressure_mbar;
 	float temperature_C;
 	float fluidDensity_kg_m3;
 	float surface_pressure_mbar; /* zero-depth reference, defaults to 1013.25 in Init() */
 	bool secondOrderCalculation; /* apply low-temp second-order compensation - default false, set true from main.c to enable */
+	bool _model_set; /* INTERNAL USE ONLY. Set to true by MS5837_SetModel(). Lets
+	                     Init() tell "user already picked a model" apart from
+	                     "never touched", so it knows whether to apply the 30BA
+	                     default or leave your override alone. Don't read or
+	                     write this from main.c. */
 } MS5837_t;
 
 /**
  * @brief  Resets the sensor and reads factory calibration data from PROM.
+ *         Also applies default values (surface_pressure_mbar = 1013.25,
+ *         fluidDensity_kg_m3 = 1026, secondOrderCalculation = false), and
+ *         sets model to MS5837_MODEL_30BA UNLESS MS5837_SetModel() was
+ *         already called on this dev, in which case your choice is kept.
  * @param  dev: pointer to MS5837 handle (hi2c and osr must be set before calling)
  * @retval true if init + PROM read succeeded, false otherwise
  */
@@ -64,9 +73,9 @@ bool MS5837_Init(MS5837_t *dev);
 bool MS5837_Read(MS5837_t *dev);
 
 /**
- * @brief  Sets which MS5837 variant this device is. Call AFTER Init()
- *         (Init() resets this to MS5837_MODEL_30BA by default), before
- *         your first Read() if you need the 02BA variant instead.
+ * @brief  Sets which MS5837 variant this device is. Safe to call either
+ *         BEFORE or AFTER Init() - once called, Init() will not overwrite
+ *         it with the 30BA default.
  */
 void MS5837_SetModel(MS5837_t *dev, MS5837_Model_t model);
 
