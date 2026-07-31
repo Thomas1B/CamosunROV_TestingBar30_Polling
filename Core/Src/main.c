@@ -107,6 +107,7 @@ int main(void) {
 	MS5837_SetI2C(&bar30, &hi2c1); // set the I2C handle for the sensor
 	MS5837_SetOSR(&bar30, MS5837_OSR_256); // set the oversampling rate for the sensor
 	MS5837_SetModel(&bar30, MS5837_MODEL_30BA); // set the sensor model
+	bar30.secondOrderCalculation = false; // enable second order calculation, compensates for water below 15C.
 
 	if (MS5837_Init(&bar30)) { // initialization and checking if the sensor is connected
 		printf("BarXX init OK.\r\n");
@@ -126,7 +127,6 @@ int main(void) {
 				bar30.prom[1], bar30.prom[2], bar30.prom[3], bar30.prom[4],
 				bar30.prom[5], bar30.prom[6]);
 
-		bar30.secondOrderCalculation = true; // enable second order calculation, compensates for water below 15C.
 		printf("Surface reference: %.2f mbar\r\n",
 				MS5837_GetSurfaceReference(&bar30));
 //		MS5837_SetSurfaceReference(&bar30, 1050.25f);
