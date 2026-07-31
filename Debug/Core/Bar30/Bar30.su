@@ -15,6 +15,5 @@
 ../Core/Bar30/Bar30.c:248:7:MS5837_GetFluidDensity	16	static
 ../Core/Bar30/Bar30.c:252:7:MS5837_GetDepth	24	static
 ../Core/Bar30/Bar30.c:258:6:MS5837_SetI2C	16	static
-../Core/Bar30/Bar30.c:262:20:MS5837_GetI2C	16	static
-../Core/Bar30/Bar30.c:266:6:MS5837_SetOSR	16	static
-../Core/Bar30/Bar30.c:270:14:MS5837_GetOSR	16	static
+../Core/Bar30/Bar30.c:263:6:MS5837_SetOSR	16	static
+../Core/Bar30/Bar30.c:267:14:MS5837_GetOSR	16	static
